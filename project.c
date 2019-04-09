@@ -3,14 +3,73 @@
 
 /* ALU */
 /* 10 Points */
-void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
+void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
+	switch(ALUControl)
+  	{
+		case 0x000 :
+		{
+			printf("CASE 0\n");
+			*ALUresult = A + B;
+			printf("%d + %d = %d", A, B, *ALUresult);
+			break;
+		}
+		case 0x001 :
+		{
+			printf("CASE 1\n");
+			*ALUresult = A - B;
+			printf("%d - %d = %d", A, B, *ALUresult);
+			break;
+		}
+		case 0x002 :
+		{
+			printf("CASE 2\n");
+			*ALUresult = (A < B) ? 1 : 0;
+			if (*ALUresult == 1)
+				printf("%d < %d\n", A, B);
+			else
+				printf("%d >= %d\n", B, A);
+			break;
+		}
+		case 0x003 :
+		{
+			printf("CASE 3\n");
+			*ALUresult = (A < B) ? 1 : 0;
+			if (*ALUresult == 1)
+				printf("%d < %d\n", A, B);
+			else
+				printf("%d >= %d\n", B, A);
+			break;
+		}
+		case 0x004 :
+		{
+			printf("CASE 4\n");
+			*ALUresult = (A & B);
+			printf("%d AND %d = %d", A, B, *ALUresult);
+			break;
+		}
+		case 0x005 :
+		{
+			printf("CASE 5\n");
+			break;
+		}
+		case 0x006 :
+		{
+			printf("CASE 6\n");
+			break;
+		}
+		case 0x007 :
+		{
+			printf("CASE 7\n");
+			break;
+		}
+	}
 
 }
 
 /* instruction fetch */
 /* 10 Points */
-int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
+int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
 
 }
@@ -18,12 +77,12 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 
 /* instruction partition */
 /* 10 Points */
-void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
+void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, 
+                            unsigned *r2, unsigned *r3, unsigned *funct, 
+                            unsigned *offset, unsigned *jsec)
 {
 
 }
-
-
 
 /* instruction decode */
 /* 15 Points */
@@ -76,3 +135,10 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 
 }
 
+int main(void)
+{
+	unsigned num = 3;
+	unsigned *f = &num;
+	char *zero = 0;
+	ALU(1, 2, 4, f, zero);
+}
