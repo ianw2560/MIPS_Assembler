@@ -11,62 +11,72 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		{
 			printf("CASE 0\n");
 			*ALUresult = A + B;
-			printf("%d + %d = %d", A, B, *ALUresult);
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+			printf("%d + %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x001 :
 		{
 			printf("CASE 1\n");
 			*ALUresult = A - B;
-			printf("%d - %d = %d", A, B, *ALUresult);
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+			printf("%d - %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x002 :
 		{
 			printf("CASE 2\n");
 			*ALUresult = (A < B) ? 1 : 0;
+			*Zero = (*ALUresult) ? 0 : 1;
+
 			if (*ALUresult == 1)
-				printf("%d < %d\n", A, B);
+				printf("%d < %d\n\n", A, B);
 			else
-				printf("%d >= %d\n", B, A);
+				printf("%d >= %d\n\n", B, A);
 			break;
 		}
 		case 0x003 :
 		{
 			printf("CASE 3\n");
 			*ALUresult = (A < B) ? 1 : 0;
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+
 			if (*ALUresult == 1)
-				printf("%d < %d\n", A, B);
+				printf("%d < %d\n\n", A, B);
 			else
-				printf("%d >= %d\n", B, A);
+				printf("%d >= %d\n\n", B, A);
 			break;
 		}
 		case 0x004 :
 		{
 			printf("CASE 4\n");
 			*ALUresult = (A & B);
-			printf("%d AND %d = %d", A, B, *ALUresult);
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+			printf("%d AND %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x005 :
 		{
 			printf("CASE 5\n");
 			*ALUresult = (A | B);
-			printf("%d OR %d = %d", A, B, *ALUresult);
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+			printf("%d OR %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x006 :
 		{
 			printf("CASE 6\n");
 			*ALUresult = B << 16;
-			printf("%d << 16 = %d", A, *ALUresult);
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+			printf("%d << 16 = %d\n\n", A, *ALUresult);
 			break;
 		}
 		case 0x007 :
 		{
 			printf("CASE 7\n");
 			*ALUresult = ~A;
-			printf("NOT %d = %d", A, *ALUresult);
+			*Zero = (*ALUresult == 0) ? 1 : 0;
+			printf("NOT %d = %d\n\n", A, *ALUresult);
 			break;
 		}
 	}
@@ -141,10 +151,13 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+	
 	unsigned num = 3;
 	unsigned *f = &num;
 	char *zero = 0;
-	ALU(1, 2, 4, f, zero);
+
+	for (int i = 0; i < 8; i++)
+		ALU(1, 2, i, f, zero);
 }
