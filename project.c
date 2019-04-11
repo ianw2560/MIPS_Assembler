@@ -51,16 +51,22 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		case 0x005 :
 		{
 			printf("CASE 5\n");
+			*ALUresult = (A | B);
+			printf("%d OR %d = %d", A, B, *ALUresult);
 			break;
 		}
 		case 0x006 :
 		{
 			printf("CASE 6\n");
+			*ALUresult = B << 16;
+			printf("%d << 16 = %d", A, *ALUresult);
 			break;
 		}
 		case 0x007 :
 		{
 			printf("CASE 7\n");
+			*ALUresult = ~A;
+			printf("NOT %d = %d", A, *ALUresult);
 			break;
 		}
 	}
