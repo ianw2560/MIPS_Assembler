@@ -247,14 +247,17 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->RegWrite = 0;
 		return 0;
 	}	
-	return 1;
+	return 1; //returns halt if the instruction doesn't match any of these
 }
 
 /* Read Register */
 /* 5 Points */
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
 {
-
+	*data1 = Reg[r1];
+	*data2 = Reg[r2];
+	return;
+	
 }
 
 
@@ -263,13 +266,166 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 void sign_extend(unsigned offset,unsigned *extended_value)
 {
 
+	int offsetcopy = offset;
+	
+	//By shifting left and right 16 bits because offsetcopy is an int the left most bit will fill in the space between bit 32 and bit 16
+	offsetcopy = offsetcopy << 16;
+	offsetcopy = offsetcopy >> 16;
+
+	*extended_value = offsetcopy;
+	
 }
 
 /* ALU operations */
 /* 10 Points */
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-
+	// rtype instruction
+	if (ALUOp == 7)
+	{
+		// Add
+		if (funct == 32) // 32 -> 100000
+		{
+			ALU(data1, data2, 0, ALUresult, Zero);
+			return 0;
+		}
+		// Subtract
+		if (funct == 34) // 34 -> 100010
+		{
+			ALU(data1, data2, 1, ALUresult, Zero);
+			return 0;
+		}
+		// And
+		if (funct == 36) // 36 -> 100100
+		{
+			ALU(data1, data2, 4, ALUresult, Zero);
+			return 0;
+		}
+		// Or
+		if (funct == 37) // 37 -> 100101
+		{
+			ALU(data1, data2, 5, ALUresult, Zero);
+			return 0;
+		}
+		// Set less than
+		if (funct == 42) // 42 -> 101010
+		{
+			ALU(data1, data2, 2, ALUresult, Zero);
+			return 0;
+		}
+		// Set less than unsigned
+		if (funct == 43) // 43 -> 101011
+		{
+			ALU(data1, data2, 3, ALUresult, Zero);
+			return 0;
+		}
+	}
+	// ALUOp addition
+	if (ALUOp == 0)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 0, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			ALU(data1, extended_value, 0, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 2)
+		{
+			return 0;
+		}
+	}
+	// ALUOp subtraction
+	if (ALUOp == 1)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 1, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			
+			ALU(data1, extended_value, 1, ALUresult, Zero);
+			return 0;
+		}
+	}
+	// Set less than
+	if (ALUOp == 2)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 2, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			ALU(data1, extended_value, 2, ALUresult, Zero);
+			return 0;
+		}
+	}
+	// Set less than unsigned
+	if (ALUOp == 3)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 3, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			ALU(data1, extended_value, 3, ALUresult, Zero);
+			return 0;
+		}
+	}
+	// And
+	if (ALUOp == 4)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 4, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			ALU(data1, extended_value, 4, ALUresult, Zero);
+			return 0;
+		}
+	}
+	// Or
+	if (ALUOp == 5)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 5, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			ALU(data1, extended_value, 5, ALUresult, Zero);
+			return 0;
+		}
+	}
+	// Shift left 16 bits
+	if (ALUOp == 6)
+	{
+		if (ALUSrc == 0)
+		{
+			ALU(data1, data2, 6, ALUresult, Zero);
+			return 0;
+		}
+		else if (ALUSrc == 1)
+		{
+			ALU(data1, extended_value, 6, ALUresult, Zero);
+			return 0;
+		}
+	}
+	
+	return 1;
+	
 }
 
 /* Read / Write Memory */
@@ -291,9 +447,9 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 /* 10 Points */
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-
+	
 }
-
+/*
 int main(int argc, char **argv)
 {
 	
@@ -304,3 +460,4 @@ int main(int argc, char **argv)
 	for (int i = 0; i < 8; i++)
 		ALU(1, 2, i, f, zero);
 }
+*/
