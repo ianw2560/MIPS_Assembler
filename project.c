@@ -26,7 +26,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		case 0x002 :
 		{
 			printf("CASE 2\n");
-			*ALUresult = (A < B) ? 1 : 0;
+			*ALUresult = ((int)A < (int)B) ? 1 : 0;
 			*Zero = (*ALUresult) ? 0 : 1;
 
 			if (*ALUresult == 1)
@@ -68,7 +68,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 			printf("CASE 6\n");
 			*ALUresult = B << 16;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("%d << 16 = %d\n\n", A, *ALUresult);
+			printf("%d << 16 = %d\n\n", B, *ALUresult);
 			break;
 		}
 		case 0x007 :
