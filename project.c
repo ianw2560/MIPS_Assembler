@@ -9,74 +9,74 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
   	{
 		case 0x000 :
 		{
-			printf("CASE 0\n");
+//			printf("CASE 0\n");
 			*ALUresult = A + B;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("%d + %d = %d\n\n", A, B, *ALUresult);
+//			printf("%d + %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x001 :
 		{
-			printf("CASE 1\n");
+//			printf("CASE 1\n");
 			*ALUresult = A - B;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("%d - %d = %d\n\n", A, B, *ALUresult);
+//			printf("%d - %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x002 :
 		{
-			printf("CASE 2\n");
+//			printf("CASE 2\n");
 			*ALUresult = ((int)A < (int)B) ? 1 : 0;
 			*Zero = (*ALUresult) ? 0 : 1;
 
 			if (*ALUresult == 1)
-				printf("%d < %d\n\n", A, B);
+//				printf("%d < %d\n\n", A, B);
 			else
-				printf("%d >= %d\n\n", B, A);
+//				printf("%d >= %d\n\n", B, A);
 			break;
 		}
 		case 0x003 :
 		{
-			printf("CASE 3\n");
+//			printf("CASE 3\n");
 			*ALUresult = (A < B) ? 1 : 0;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
 
 			if (*ALUresult == 1)
-				printf("%d < %d\n\n", A, B);
+//				printf("%d < %d\n\n", A, B);
 			else
-				printf("%d >= %d\n\n", B, A);
+//				printf("%d >= %d\n\n", B, A);
 			break;
 		}
 		case 0x004 :
 		{
-			printf("CASE 4\n");
+//			printf("CASE 4\n");
 			*ALUresult = (A & B);
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("%d AND %d = %d\n\n", A, B, *ALUresult);
+//			printf("%d AND %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x005 :
 		{
-			printf("CASE 5\n");
+//			printf("CASE 5\n");
 			*ALUresult = (A | B);
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("%d OR %d = %d\n\n", A, B, *ALUresult);
+//			printf("%d OR %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
 		case 0x006 :
 		{
-			printf("CASE 6\n");
+//			printf("CASE 6\n");
 			*ALUresult = B << 16;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("%d << 16 = %d\n\n", B, *ALUresult);
+//			printf("%d << 16 = %d\n\n", B, *ALUresult);
 			break;
 		}
 		case 0x007 :
 		{
-			printf("CASE 7\n");
+//			printf("CASE 7\n");
 			*ALUresult = ~A;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-			printf("NOT %d = %d\n\n", A, *ALUresult);
+//			printf("NOT %d = %d\n\n", A, *ALUresult);
 			break;
 		}
 	}
@@ -432,7 +432,21 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 /* 10 Points */
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 {
-
+	if (MemRead)
+	{
+		if (ALUresult % 4 != 0)
+			return 1;
+		else
+			*memdata = Mem[ALUresult >> 2];
+	}
+	if (MemWrite)
+	{
+		if (ALUresult % 4 != 0)
+			return 1;
+		else
+			Mem[ALUresult >> 2] = data2;
+	}
+	return 0;
 }
 
 
