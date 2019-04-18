@@ -1,95 +1,92 @@
 #include "spimcore.h"
 
+#define MAX_VAL_6_BITS 63
+#define MAX_VAL_16_BITS 65535
+#define MAX_VAL_26_BITS 67108863
 
 /* ALU */
 /* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
 	switch(ALUControl)
-  	{
+	{
+		// Add A and B
 		case 0x000 :
 		{
-//			printf("CASE 0\n");
 			*ALUresult = A + B;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-//			printf("%d + %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
+
+		// Subtract A and B
 		case 0x001 :
 		{
-//			printf("CASE 1\n");
 			*ALUresult = A - B;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-//			printf("%d - %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
+
+		// Set Z to 1 if A < B (signed)
 		case 0x002 :
 		{
-//			printf("CASE 2\n");
-			*ALUresult = ((int)A < (int)B) ? 1 : 0;
+			*ALUresult = ((int) A < (int) B) ? 1 : 0;
 			*Zero = (*ALUresult) ? 0 : 1;
-
-			if (*ALUresult == 1)
-//				printf("%d < %d\n\n", A, B);
-			else
-//				printf("%d >= %d\n\n", B, A);
 			break;
 		}
+
+		// Set Z to 1 if A < B (unsigned)
 		case 0x003 :
 		{
-//			printf("CASE 3\n");
 			*ALUresult = (A < B) ? 1 : 0;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-
-			if (*ALUresult == 1)
-//				printf("%d < %d\n\n", A, B);
-			else
-//				printf("%d >= %d\n\n", B, A);
 			break;
 		}
+
+		// A AND B
 		case 0x004 :
 		{
-//			printf("CASE 4\n");
 			*ALUresult = (A & B);
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-//			printf("%d AND %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
+
+		// A OR B
 		case 0x005 :
 		{
-//			printf("CASE 5\n");
 			*ALUresult = (A | B);
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-//			printf("%d OR %d = %d\n\n", A, B, *ALUresult);
 			break;
 		}
+
+		// B shifted left by 16
 		case 0x006 :
 		{
-//			printf("CASE 6\n");
 			*ALUresult = B << 16;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-//			printf("%d << 16 = %d\n\n", B, *ALUresult);
 			break;
 		}
+
+		// Set Z to NOT A
 		case 0x007 :
 		{
-//			printf("CASE 7\n");
 			*ALUresult = ~A;
 			*Zero = (*ALUresult == 0) ? 1 : 0;
-//			printf("NOT %d = %d\n\n", A, *ALUresult);
 			break;
 		}
 	}
-
 }
+
 
 /* instruction fetch */
 /* 10 Points */
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
-	if (PC % 4 == 0) // Checks to see if the PC is word aligned, e.g. divisible by 4
+	// Checks to see if the PC is word aligned, e.g. divisible by 4
+	if (PC % 4 == 0) 
 	{
-		*instruction = Mem[(PC >> 2)]; // The instruction file says that you just need to do PC >> 2 whenever you go into an address
+		// The instruction file says that you just need to do PC >> 2 
+		// whenever you go into an address
+		*instruction = Mem[(PC >> 2)];
 		return 0;
 	}
 	else
@@ -105,21 +102,41 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,
                             unsigned *r2, unsigned *r3, unsigned *funct, 
                             unsigned *offset, unsigned *jsec)
 {
+	// Returns first 6 bits
+	*op = instruction >> 26;
 
-	*op = instruction >> 26; // Returns first 6 bits
-	*r1 = instruction >> 21 & 31; // 31 represents 11111 in binary, isolates the last 5 bits after shifting 21
-	*r2 = instruction >> 16 & 31; // Returns the 5 bits after r1
-	*r3 = instruction >> 11 & 31; // Returns the 5 bits after r2
-	*funct = instruction & 63; // Since funct is the last 6 bits need to use & with 63 which is 111111 in binary.
-	*offset = instruction & 65535; //since offset is the last 16 bits use & with 2^16 - 1 to isolate last 16 bits.
-	*jsec = instruction & 67108863; //since jsec is the last 26 bits use & with 2^26 - 1 to isolate last 26 bits of instruction.
+	// 31 represents 11111 in binary, 
+	// isolates the last 5 bits after shifting 21
+	*r1 = instruction >> 21 & 31;
+
+	// Returns the 5 bits after r1
+	*r2 = instruction >> 16 & 31;
+
+	// Returns the 5 bits after r2
+	*r3 = instruction >> 11 & 31;
+
+	// Since funct is the last 6 bits,
+	// use & with 63 which is 111111 in binary.
+	*funct = instruction & MAX_VAL_6_BITS;
+
+	// Since offset is the last 16 bits,
+	// use & with 2^16 - 1 to isolate last 16 bits.
+	*offset = instruction & MAX_VAL_16_BITS;
+
+	// Since jsec is the last 26 bits,
+	// use & with 2^26 - 1 to isolate last 26 bits of instruction.
+	*jsec = instruction & MAX_VAL_26_BITS;
 }
+
 
 /* instruction decode */
 /* 15 Points */
-int instruction_decode(unsigned op,struct_controls *controls)
+int instruction_decode(unsigned op, struct_controls *controls)
 {
-	//The op decides what the other control signals are. The below functions that use the control signals will refer to these values
+	// The op decides what the other control signals are.
+	// The below functions that use the control signals 
+	// will refer to these values
+
 	// R-type instruction
 	if (op == 0) // 0 -> 000000
 	{
@@ -133,8 +150,8 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUSrc = 0;
 		controls->RegWrite = 1;
 		return 0;
-		
 	}
+
 	// Add immediate
 	if (op == 8) // 8 -> 001000
 	{
@@ -163,6 +180,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->RegWrite = 1;
 		return 0;
 	}
+
 	// Save word
 	if (op == 43) // 43 -> 101011
 	{
@@ -177,6 +195,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->RegWrite = 0;
 		return 0;
 	}
+
 	// Load upper immediate 
 	if (op == 15) // 15 -> 001111
 	{
@@ -190,7 +209,8 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUSrc = 1;
 		controls->RegWrite = 1;
 		return 0;
-	}	
+	}
+
 	// Branch on equal
 	if (op == 4) // 4 -> 000100
 	{
@@ -218,7 +238,8 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUSrc = 1;
 		controls->RegWrite = 1;
 		return 0;
-	}	
+	}
+
 	// Set less than immediate unsigned
 	if (op == 11) // 11 -> 001011
 	{
@@ -232,7 +253,8 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUSrc = 1;
 		controls->RegWrite = 1;
 		return 0;
-	}	
+	}
+
 	// Jump
 	if (op == 2) // 2 -> 000010
 	{
@@ -246,35 +268,38 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUSrc = 2;
 		controls->RegWrite = 0;
 		return 0;
-	}	
-	return 1; //returns halt if the instruction doesn't match any of these
+	}
+
+	// Returns halt if no valid instructions are found.
+	return 1;
 }
+
 
 /* Read Register */
 /* 5 Points */
-void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
+void read_register(unsigned r1,unsigned r2,unsigned *Reg, unsigned *data1, 
+					unsigned *data2)
 {
 	*data1 = Reg[r1];
 	*data2 = Reg[r2];
-	return;
-	
 }
 
 
 /* Sign Extend */
 /* 10 Points */
-void sign_extend(unsigned offset,unsigned *extended_value)
+void sign_extend(unsigned offset, unsigned *extended_value)
 {
 
 	int offsetcopy = offset;
 	
-	//By shifting left and right 16 bits because offsetcopy is an int the left most bit will fill in the space between bit 32 and bit 16
+	// By shifting left and right 16 bits because offsetcopy is an int the left 
+	// most bit will fill in the space between bit 32 and bit 16
 	offsetcopy = offsetcopy << 16;
 	offsetcopy = offsetcopy >> 16;
 
 	*extended_value = offsetcopy;
-	
 }
+
 
 /* ALU operations */
 /* 10 Points */
@@ -320,6 +345,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
 	// ALUOp addition
 	if (ALUOp == 0)
 	{
@@ -338,6 +364,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
 	// ALUOp subtraction
 	if (ALUOp == 1)
 	{
@@ -353,6 +380,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
 	// Set less than
 	if (ALUOp == 2)
 	{
@@ -367,6 +395,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
 	// Set less than unsigned
 	if (ALUOp == 3)
 	{
@@ -381,6 +410,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
 	// And
 	if (ALUOp == 4)
 	{
@@ -395,6 +425,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
 	// Or
 	if (ALUOp == 5)
 	{
@@ -409,6 +440,8 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			return 0;
 		}
 	}
+
+
 	// Shift left 16 bits
 	if (ALUOp == 6)
 	{
@@ -425,86 +458,83 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 	}
 	
 	return 1;
-	
 }
+
 
 /* Read / Write Memory */
 /* 10 Points */
-int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
+int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead,
+				unsigned *memdata, unsigned *Mem)
 {
 	if (MemRead)
 	{
-		// check for incorrect addressing.
+		// Check for incorrect addressing
 		if (ALUresult % 4 != 0)
 			return 1;
-		else		// shift address.
-			*memdata = Mem[ALUresult >> 2]; // store in memdata
+		else
+		{
+			// Shift address and store in memdata
+			*memdata = Mem[ALUresult >> 2];
+		}
 	}
+
 	if (MemWrite)
 	{
-		// check for incorrect addressing.
+		// Check for incorrect addressing
 		if (ALUresult % 4 != 0)
 			return 1;
-		else    // shift address
-			Mem[ALUresult >> 2] = data2; //write in mem
+		else
+		{
+			// Shift address and write in Mem
+			Mem[ALUresult >> 2] = data2;
+		}
 	}
+
 	return 0;
 }
 
 
 /* Write Register */
 /* 10 Points */
-void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
+void write_register(unsigned r2, unsigned r3, unsigned memdata, 
+					unsigned ALUresult, char RegWrite, char RegDst, 
+					char MemtoReg, unsigned *Reg)
 {
-	if (RegWrite) // check for write flag
+	// Check for write flag
+	if (RegWrite)
 	{
-		
 		if (!MemtoReg)
 		{
 			if (RegDst)
-			{
 				Reg[r3] = ALUresult;
-			}
 			else 
-			{
 				Reg[r2] = ALUresult;
-			}
 		}
-		else if (MemtoReg)
-		{
+		
+		if (MemtoReg)
 			Reg[r2] = memdata;
-		}
 	}
-	
 }
+
 
 /* PC update */
 /* 10 Points */
-void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
+void PC_update(unsigned jsec, unsigned extended_value, char Branch,
+				char Jump, char Zero, unsigned *PC)
 {
-	*PC += 4; //update PC
+	// Update the program counter
+	*PC += 4;
 	
-	// if branch and zero signal, then update again by adding extended value multiplied by 4.
+	// If branch and zero signal, then update again by adding 
+	// extended value multiplied by 4.
 	if (Zero && Branch && !Jump)
 	{
 		*PC += (extended_value << 2);
 	}
-	// if jump, shift jsec and bitwise or with PC
+
+	// If jump, shift jsec and OR with the PC.
 	else if (Jump)
 	{
-		*PC = (jsec << 2) | (*PC & 0xf0000000);
+		*PC = (*PC & 0xf0000000) | (jsec << 2);
 	}
-	
 }
-/*
-int main(int argc, char **argv)
-{
-	
-	unsigned num = 3;
-	unsigned *f = &num;
-	char *zero = 0;
-
-	for (int i = 0; i < 8; i++)
-		ALU(1, 2, i, f, zero);
-}
-*/
